@@ -227,10 +227,59 @@ const getClassroom = async (req, res) => {
   }
 };
 
+const addStudentsToClassroom = async (req, res) => {
+  try {
+    const { classroomId, toBeLinkStudentIds = [] } = req.body;
+
+    if (!classroomId) throw new Error("CLASSROOM_ID_UNAVAILABLE");
+
+    if (toBeLinkStudentIds.length === 0)
+      throw new Error("NO_STUDENTS_IDS_TO_BE_LINK");
+
+    const mappedDataWithClassroomId = toBeLinkStudentIds.map((eachId) => ({
+      classroom_id: classroomId,
+      student_id: eachId,
+    }));
+
+    // link classroom with student || if student already link with classroom then do nothing
+    await SQL`INSERT INTO "onlineTutorSystem"."classrooms_students" ${SQL(
+      mappedDataWithClassroomId,
+      "classroom_id",
+      "student_id"
+    )} ON CONFLICT (classroom_id, student_id) DO NOTHING;`;
+
+    res.status(200).json({
+      success: true,
+      error: null,
+      data: {
+        studentLinked: toBeLinkStudentIds.length,
+      },
+    });
+  } catch (error) {
+    if (error.message === "CLASSROOM_ID_UNAVAILABLE") {
+      return res.status(401).json({
+        success: false,
+        error: "classroomId is required",
+      });
+    } else if (error.message === "NO_STUDENTS_IDS_TO_BE_LINK") {
+      return res.status(401).json({
+        success: false,
+        error: "toBeLinkStudentIds should be more than 0",
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+};
+
 export {
   createClassroom,
   updateClassroom,
   deleteClassroom,
   getAllClassrooms,
   getClassroom,
+  addStudentsToClassroom,
 };

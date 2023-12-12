@@ -6,6 +6,7 @@ import {
   updateClassroom,
   getAllClassrooms,
   getClassroom,
+  addStudentsToClassroom,
 } from "./controllers.js";
 
 const router = express.Router();
@@ -17,6 +18,12 @@ router.post(
   authorize,
   authorizedToTutor,
   deleteClassroom
+);
+router.post(
+  "/add-students",
+  authorize,
+  authorizedToTutor,
+  addStudentsToClassroom
 );
 router.get("/get", authorize, getAllClassrooms);
 router.get("/get/:classroomId", authorize, getClassroom);
