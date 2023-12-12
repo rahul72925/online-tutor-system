@@ -14,7 +14,6 @@ export const handleLogIn = async (req, res) => {
     if (!username || !password) {
       throw new Error("INVALID_USERNAME_PASSWORD");
     }
-    console.log("hello");
     if (!userType || !allowedUserType.includes(userType)) {
       throw new Error("INVALID_USER_TYPE");
     }

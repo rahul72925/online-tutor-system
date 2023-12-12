@@ -9,6 +9,7 @@ const generateJwtToken = (data, options = {}) => {
 
 const validateJwtToken = (token) => {
   try {
+    const JWT_SECRET_FOR_AUTH = get_env("JWT_SECRET_FOR_AUTH");
     var decoded = jwt.verify(token, JWT_SECRET_FOR_AUTH);
     return decoded;
   } catch (err) {
