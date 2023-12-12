@@ -275,6 +275,48 @@ const addStudentsToClassroom = async (req, res) => {
   }
 };
 
+const removeStudentsClassroom = async (req, res) => {
+  try {
+    const { classroomId, toBeRemoveStudentIds = [] } = req.body;
+
+    if (!classroomId) throw new Error("CLASSROOM_ID_UNAVAILABLE");
+
+    if (toBeRemoveStudentIds.length === 0)
+      throw new Error("NO_STUDENTS_IDS_TO_REMOVE");
+
+    // link classroom with student || if student already link with classroom then do nothing
+    await SQL`DELETE FROM "onlineTutorSystem"."classrooms_students" where "student_id" in ${SQL(
+      toBeRemoveStudentIds
+    )};`;
+
+    res.status(200).json({
+      success: true,
+      error: null,
+      data: {
+        removedStudents: toBeRemoveStudentIds.length,
+      },
+    });
+  } catch (error) {
+    if (error.message === "CLASSROOM_ID_UNAVAILABLE") {
+      return res.status(401).json({
+        success: false,
+        error: "classroomId is required",
+      });
+    } else if (error.message === "NO_STUDENTS_IDS_TO_REMOVE") {
+      return res.status(401).json({
+        success: false,
+        error: "toBeRemoveStudentIds should be more than 0",
+      });
+    } else {
+      console.log(error.message);
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+};
+
 export {
   createClassroom,
   updateClassroom,
@@ -282,4 +324,5 @@ export {
   getAllClassrooms,
   getClassroom,
   addStudentsToClassroom,
+  removeStudentsClassroom,
 };
