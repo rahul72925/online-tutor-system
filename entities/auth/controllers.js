@@ -21,13 +21,11 @@ export const handleLogIn = async (req, res) => {
     let token;
     // handle tutor
     if (userType === "TUTOR") {
-      const userData = await SQL`select * from "onlineTutorSystem"."tutors";`;
+      const userData =
+        await SQL`select * from "onlineTutorSystem"."tutors" where username=${username};`;
       if (userData.length === 0) {
         // insert tutor details
         const hash = await generateHash(password);
-        console.log(
-          `INSERT INTO "onlineTutorSystem"."tutors" (username, password) values(${username},${hash})  returning id; `
-        );
         const insertReturn =
           await SQL`INSERT INTO "onlineTutorSystem"."tutors" (username, password) values(${username},${hash})  returning id;`;
 
@@ -61,7 +59,8 @@ export const handleLogIn = async (req, res) => {
         });
       }
     } else {
-      const userData = await SQL`select * from "onlineTutorSystem"."students";`;
+      const userData =
+        await SQL`select * from "onlineTutorSystem"."students" where username=${username};`;
       if (userData.length === 0) {
         const hash = await generateHash(password);
         const insertReturn =
