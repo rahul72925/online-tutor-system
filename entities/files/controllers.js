@@ -1,5 +1,5 @@
 import SQL from "../../sql.js";
-import { getFileTypeFromMimeType } from "../../utils/index.js";
+import { getFileTypeFromMimeType, isTutor } from "../../utils/index.js";
 import fs from "fs";
 const uploadFile = async (req, res) => {
   const files = req.files;
@@ -72,4 +72,76 @@ const uploadFile = async (req, res) => {
     }
   }
 };
-export { uploadFile };
+
+const deleteFiles = async (req, res) => {
+  try {
+    const { fileIds } = req.body;
+    if (!Array.isArray(fileIds)) throw new Error("FILE_IDS_INVALID");
+
+    if (fileIds.length === 0) throw new Error("NO_IDS_TO_DELETE");
+
+    const { tutorId } = req;
+    await SQL`UPDATE "onlineTutorSystem"."files" SET is_archived = true where id in ${SQL(
+      fileIds
+    )} and tutor_id = ${tutorId};`;
+
+    res.status(200).json({
+      success: true,
+      message: "files deleted successfully",
+    });
+  } catch (error) {
+    if (error.message === "FILE_IDS_INVALID") {
+      return res.status(401).json({
+        success: false,
+        error: "fileIds must be an array",
+      });
+    } else if (error.message === "NO_IDS_TO_DELETE") {
+      return res.status(401).json({
+        success: false,
+        error: "atleast 1 file id should be there",
+      });
+    } else {
+      console.log(error);
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+};
+
+const getFiles = async (req, res) => {
+  try {
+    const { classroomId } = req.body;
+    if (!classroomId) throw new Error("CLASSROOM_ID_UNAVAILABLE");
+    const { search = null } = req.query;
+
+    const like = search
+      ? SQL`and file_name LIKE  ${"%" + search + "%"}`
+      : SQL``;
+
+    const files =
+      await SQL`SELECT * FROM "onlineTutorSystem"."files" where is_archived = false and classroom_id = ${classroomId} ${like};`;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        files,
+      },
+    });
+  } catch (error) {
+    if (error.message === "CLASSROOM_ID_UNAVAILABLE") {
+      return res.status(401).json({
+        success: false,
+        error: "classroomId required",
+      });
+    } else {
+      console.log(error);
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+};
+export { uploadFile, deleteFiles, getFiles };
