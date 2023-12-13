@@ -46,7 +46,7 @@ CREATE TABLE "onlineTutorSystem".files (
     classroom_id UUID REFERENCES "onlineTutorSystem".classrooms(id),
     file_name TEXT,
     file_type TEXT,
-    file_path INTEGER,
+    file_path TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_archived BOOLEAN DEFAULT false
