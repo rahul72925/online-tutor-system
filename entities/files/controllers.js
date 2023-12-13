@@ -114,14 +114,15 @@ const getFiles = async (req, res) => {
   try {
     const { classroomId } = req.body;
     if (!classroomId) throw new Error("CLASSROOM_ID_UNAVAILABLE");
-    const { search = null } = req.query;
+    const { search = null, fileType = null } = req.query;
 
     const like = search
       ? SQL`and file_name LIKE  ${"%" + search + "%"}`
       : SQL``;
+    const fileTypeFilter = fileType ? SQL`and file_type =  ${fileType}` : SQL``;
 
     const files =
-      await SQL`SELECT * FROM "onlineTutorSystem"."files" where is_archived = false and classroom_id = ${classroomId} ${like};`;
+      await SQL`SELECT * FROM "onlineTutorSystem"."files" where is_archived = false and classroom_id = ${classroomId} ${fileTypeFilter} ${like};`;
 
     return res.status(200).json({
       success: true,
