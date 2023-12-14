@@ -1,6 +1,12 @@
+import path from "path";
 import SQL from "../../sql.js";
-import { getFileTypeFromMimeType, isTutor } from "../../utils/index.js";
+import {
+  getFileTypeFromMimeType,
+  isStudent,
+  isTutor,
+} from "../../utils/index.js";
 import fs from "fs";
+
 const uploadFile = async (req, res) => {
   const files = req.files;
   try {
@@ -145,4 +151,44 @@ const getFiles = async (req, res) => {
     }
   }
 };
-export { uploadFile, deleteFiles, getFiles };
+
+const getFile = async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    if (!fileId) throw new Error("FILE_ID_UNAVAILABLE");
+
+    const { tutorId, studentId, userType } = req;
+    let file = null;
+    if (isTutor(userType)) {
+      // Tutors can only access their own files
+      file = await SQL`select * from "onlineTutorSystem"."files"
+      where is_archived = false and tutor_id = ${tutorId} and id = ${fileId};`;
+    }
+    if (isStudent(userType)) {
+      file = await SQL` of.* from "onlineTutorSystem"."files" of 
+        LEFT JOIN "onlineTutorSystem"."classrooms_students" ocs 
+        on of.classroom_id = ocs.classroom_id where ocs.student_id = ${studentId} and of.id = ${fileId} and of.is_archived = false;`;
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        file: file && file[0],
+      },
+    });
+  } catch (error) {
+    if (error.message === "FILE_ID_UNAVAILABLE") {
+      return res.status(401).json({
+        success: false,
+        error: "fileId required",
+      });
+    } else {
+      console.log("error", error);
+      return res.status(500).json({
+        super: false,
+        error: error.message,
+      });
+    }
+  }
+};
+export { uploadFile, deleteFiles, getFiles, getFile };
