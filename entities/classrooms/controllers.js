@@ -108,11 +108,13 @@ const updateClassroom = async (req, res) => {
 const deleteClassroom = async (req, res) => {
   try {
     const { classroomId } = req.params;
+    const { tutorId } = req;
 
     if (!classroomId) {
       throw new Error("CLASSROOM_ID_UNAVAILABLE");
     }
-    await SQL`UPDATE "onlineTutorSystem"."classrooms" set is_archived = true where id=${classroomId};`;
+
+    await SQL`UPDATE "onlineTutorSystem"."classrooms" set is_archived = true where id=${classroomId} AND tutor_id = ${tutorId};`;
     return res.status(200).json({
       success: true,
       message: "classroom deleted successfully",
