@@ -19,6 +19,7 @@ export const handleLogIn = async (req, res) => {
     }
 
     let token;
+    let id;
     // handle tutor
     if (userType === "TUTOR") {
       const userData =
@@ -38,7 +39,7 @@ export const handleLogIn = async (req, res) => {
           userType: "TUTOR",
           iat: Math.floor(Date.now() / 1000) - 30,
         };
-
+        id = insertReturn[0].id;
         token = generateJwtToken(userInfo, {
           expiresIn: 60 * 60 * 24,
         });
@@ -53,12 +54,13 @@ export const handleLogIn = async (req, res) => {
           userType: "TUTOR",
           iat: Math.floor(Date.now() / 1000) - 30,
         };
-
+        id = userData[0].id;
         token = generateJwtToken(userInfo, {
           expiresIn: 60 * 60 * 24,
         });
       }
     } else {
+      // for student
       const userData =
         await SQL`select * from "onlineTutorSystem"."students" where username=${username};`;
       if (userData.length === 0) {
@@ -75,7 +77,7 @@ export const handleLogIn = async (req, res) => {
           userType: "STUDENT",
           iat: Math.floor(Date.now() / 1000) - 30,
         };
-
+        id = insertReturn[0].id;
         token = generateJwtToken(userInfo, {
           expiresIn: 60 * 60 * 24,
         });
@@ -89,7 +91,7 @@ export const handleLogIn = async (req, res) => {
           userType: "STUDENT",
           iat: Math.floor(Date.now() / 1000) - 30,
         };
-
+        id = userData[0].id;
         token = generateJwtToken(userInfo, {
           expiresIn: 60 * 60 * 24,
         });
@@ -98,6 +100,7 @@ export const handleLogIn = async (req, res) => {
     res.status(200).json({
       success: true,
       token,
+      id,
     });
   } catch (error) {
     console.log("error", error);
